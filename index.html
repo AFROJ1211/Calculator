@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Scientific Calculator — Upgraded UI</title>
+  <style>
+    :root{
+      --bg:#f4f6fb;
+      --panel:#ffffff;
+      --muted:#98a0b3;
+      --accent:#007bff;
+      --accent-2:#28a745;
+      --danger:#dc3545;
+      --gold:#ffc107;
+      --button:#f1f4f8;
+      --glass: rgba(255,255,255,0.6);
+      --shadow: 0 8px 24px rgba(17,24,39,0.08);
+      --radius:12px;
+      --gap:10px;
+      --font: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family:var(--font);
+      background:linear-gradient(180deg,var(--bg),#e9eef8);
+      color:#0b1220;
+      padding:20px;
+      transition:background .25s, color .25s;
+    }
+    body.dark{
+      --bg:#0b0f14;
+      --panel:#111217;
+      --muted:#9aa4b2;
+      --accent:#3b82f6;
+      --accent-2:#2dd4bf;
+      --danger:#ef4444;
+      --gold:#f59e0b;
+      --button:#13161a;
+      --glass: rgba(255,255,255,0.03);
+      --shadow: 0 10px 30px rgba(2,6,23,0.7);
+      background:linear-gradient(180deg,#05060a,#0b0f14);
+      color:#e6eef8;
+    }
+
+    /* Calculator container */
+    .calculator{
+      width:100%;
+      max-width:760px;
+      background:var(--panel);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px;
+      box-sizing:border-box;
+      transition:background .25s, color .25s;
+      display:grid;
+      grid-template-columns: 1fr 320px;
+      gap:18px;
+    }
+
+    /* Responsive: stack on small screens */
+    @media (max-width:920px){
+      .calculator{ grid-template-columns: 1fr; max-width:520px; padding:14px;}
+    }
+
+    /* Left area (display + tabs + keypad) */
+    .left{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    /* Display */
+    #display{
+      width:100%;
+      height:70px;
+      border-radius:10px;
+      border:none;
+      outline:none;
+      padding:14px 18px;
+      box-sizing:border-box;
+      font-size:22px;
+      text-align:right;
+      background:linear-gradient(180deg,var(--glass),transparent);
+      color:inherit;
+      box-shadow: inset 0 -1px 0 rgba(0,0,0,0.02);
+    }
+
+    .top-controls{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+
+    /* Tabs row */
+    .tabs{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .tab{
+      background:transparent;
+      border:1px solid transparent;
+      padding:8px 12px;
+      border-radius:8px;
+      font-weight:600;
+      cursor:pointer;
+      color:var(--muted);
+      transition:all .15s;
+    }
+    .tab:hover{ transform:translateY(-2px); }
+    .tab.active{
+      background:linear-gradient(90deg, rgba(0,123,255,0.12), rgba(0,123,255,0.06));
+      color:var(--accent);
+      border:1px solid rgba(0,123,255,0.12);
+    }
+
+    /* Control buttons like rad/deg, undo/redo, clear all, theme */
+    .controls-right{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .chip{
+      padding:8px 10px;
+      border-radius:8px;
+      border:1px solid transparent;
+      background:var(--button);
+      cursor:pointer;
+      font-weight:600;
+      min-width:46px;
+      text-align:center;
+    }
+    .chip.active{ border:1px solid rgba(0,0,0,0.06); box-shadow:0 4px 10px rgba(0,0,0,0.04); }
+    .chip.icon{ width:42px; height:42px; display:inline-flex; align-items:center; justify-content:center; padding:0; }
+
+    /* Key area grid */
+    .keypad{
+      display:grid;
+      grid-template-columns: repeat(6,1fr);
+      gap:var(--gap);
+    }
+    @media (max-width:540px){
+      .keypad{ grid-template-columns: repeat(4,1fr); }
+    }
+
+    button.calc-btn{
+      border:0;
+      padding:14px;
+      border-radius:10px;
+      background:var(--button);
+      cursor:pointer;
+      font-size:15px;
+      font-weight:600;
+      box-shadow: 0 4px 10px rgba(2,6,23,0.03);
+      transition:transform .08s, box-shadow .12s, background .12s;
+      white-space:nowrap;
+    }
+    button.calc-btn:active{ transform:translateY(1px) scale(.998); }
+    button.calc-btn:hover{ box-shadow: 0 8px 20px rgba(2,6,23,0.06); }
+
+    /* Different categories */
+    .num { color:inherit; }
+    .op { color:var(--accent); font-weight:700; }
+    .func { color:var(--gold); }
+    .mem { color:var(--muted); font-weight:700; }
+
+    .equal{
+      grid-column: span 2;
+      background: linear-gradient(180deg, rgba(40,167,69,0.98), rgba(28,135,50,0.98));
+      color:white;
+      font-size:16px;
+      box-shadow: 0 8px 30px rgba(40,167,69,0.18);
+    }
+    .enter{
+      grid-column: span 2;
+      background: linear-gradient(180deg, rgba(3,169,244,0.95), rgba(3,139,244,0.95));
+      color:white;
+      font-size:15px;
+      box-shadow: 0 8px 30px rgba(3,169,244,0.12);
+    }
+    .danger{
+      background:linear-gradient(180deg,var(--danger),#c92a2a);
+      color:white;
+      font-weight:700;
+    }
+    .special { background:linear-gradient(180deg,var(--gold), #e6a700); color:#111; font-weight:800; }
+
+    /* Right column: history & memory + notes */
+    .right{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      min-width:260px;
+    }
+    .panel{
+      background:linear-gradient(180deg,var(--glass),transparent);
+      border-radius:10px;
+      padding:12px;
+      box-sizing:border-box;
+    }
+    .hist-list{
+      max-height:380px;
+      overflow:auto;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .hist-item{
+      padding:8px 10px;
+      border-radius:8px;
+      background:transparent;
+      border:1px solid rgba(0,0,0,0.03);
+      cursor:pointer;
+      font-weight:600;
+    }
+    .hist-item:hover{ background:rgba(0,0,0,0.035); }
+
+    /* small helper text */
+    .muted{ color:var(--muted); font-size:13px; }
+
+    /* footer row for memory */
+    .memory-row{ display:flex; gap:8px; flex-wrap:wrap; }
+    .memory-indicator{ padding:6px 10px; border-radius:8px; background:var(--button); font-weight:700; }
+
+    /* Accessibility focus outline */
+    button.calc-btn:focus, .tab:focus, .chip:focus{ outline:2px solid rgba(0,123,255,0.18); outline-offset:2px; }
+
+    /* Tiny responsive tweaks */
+    @media (max-width:420px){
+      #display{ height:64px; font-size:20px; padding:12px; }
+      button.calc-btn{ padding:12px; font-size:14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator" role="application" aria-label="Scientific Calculator">
+    <!-- LEFT: display, tabs, keypad -->
+    <div class="left">
+      <input id="display" class="display" aria-label="Calculator display" type="text" readonly />
+
+      <div class="top-controls">
+        <div class="tabs" role="tablist" aria-label="Calculator tabs">
+          <button class="tab active" onclick="showTab('main', event)" id="tab-main" role="tab">main</button>
+          <button class="tab" onclick="showTab('abc', event)" id="tab-abc" role="tab">abc</button>
+          <button class="tab" onclick="showTab('func', event)" id="tab-func" role="tab">func</button>
+        </div>
+
+        <div class="controls-right">
+          <button class="chip" onclick="setMode('RAD')" id="radBtn" title="Radians">RAD</button>
+          <button class="chip" onclick="setMode('DEG')" id="degBtn" title="Degrees">DEG</button>
+          <button class="chip" onclick="undo()" title="Undo (Ctrl+Z)">⎌</button>
+          <button class="chip" onclick="redo()" title="Redo (Ctrl+Y)">⎎</button>
+          <button class="chip danger" onclick="clearAll()" title="Clear All">Clear All</button>
+          <button class="chip icon" onclick="toggleTheme()" id="themeBtn" title="Toggle theme">🌓</button>
+        </div>
+      </div>
+
+      <!-- Keypad panes -->
+      <div id="main" class="keypad pane active">
+        <!-- Row 1 -->
+        <button class="calc-btn num" onclick="append('7')">7</button>
+        <button class="calc-btn num" onclick="append('8')">8</button>
+        <button class="calc-btn num" onclick="append('9')">9</button>
+        <button class="calc-btn op" onclick="append('/')">÷</button>
+        <button class="calc-btn op" onclick="append('(')">(</button>
+        <button class="calc-btn op" onclick="append(')')">)</button>
+
+        <!-- Row 2 -->
+        <button class="calc-btn num" onclick="append('4')">4</button>
+        <button class="calc-btn num" onclick="append('5')">5</button>
+        <button class="calc-btn num" onclick="append('6')">6</button>
+        <button class="calc-btn op" onclick="append('*')">×</button>
+        <button class="calc-btn func" onclick="append('pi')">π</button>
+        <button class="calc-btn func" onclick="append('e')">e</button>
+
+        <!-- Row 3 -->
+        <button class="calc-btn num" onclick="append('1')">1</button>
+        <button class="calc-btn num" onclick="append('2')">2</button>
+        <button class="calc-btn num" onclick="append('3')">3</button>
+        <button class="calc-btn op" onclick="append('-')">−</button>
+        <button class="calc-btn func" onclick="append('^')">xʸ</button>
+        <button class="calc-btn func" onclick="append('sqrt(')">√</button>
+
+        <!-- Row 4 -->
+        <button class="calc-btn num" onclick="append('0')">0</button>
+        <button class="calc-btn num" onclick="append('.')">.</button>
+        <button class="calc-btn special" onclick="clearEntry()" title="Clear (C)">C</button>
+        <button class="calc-btn danger" onclick="backspace()" title="Backspace">✖</button>
+        <button class="calc-btn equal" onclick="calculate()" title="Calculate">=</button>
+        <button class="calc-btn enter" onclick="calculate()" title="Enter">Enter</button>
+      </div>
+
+      <!-- ABC pane -->
+      <div id="abc" class="keypad pane" style="display:none;">
+        <!-- show A-Z -->
+        <script type="text/template" id="abc-template">
+          <!-- will be populated by JS if needed -->
+        </script>
+        <!-- We'll list them statically so layout is stable -->
+        <button class="calc-btn num" onclick="append('a')">a</button>
+        <button class="calc-btn num" onclick="append('b')">b</button>
+        <button class="calc-btn num" onclick="append('c')">c</button>
+        <button class="calc-btn num" onclick="append('d')">d</button>
+        <button class="calc-btn num" onclick="append('e')">e</button>
+        <button class="calc-btn num" onclick="append('f')">f</button>
+
+        <button class="calc-btn num" onclick="append('g')">g</button>
+        <button class="calc-btn num" onclick="append('h')">h</button>
+        <button class="calc-btn num" onclick="append('i')">i</button>
+        <button class="calc-btn num" onclick="append('j')">j</button>
+        <button class="calc-btn num" onclick="append('k')">k</button>
+        <button class="calc-btn num" onclick="append('l')">l</button>
+
+        <button class="calc-btn num" onclick="append('m')">m</button>
+        <button class="calc-btn num" onclick="append('n')">n</button>
+        <button class="calc-btn num" onclick="append('o')">o</button>
+        <button class="calc-btn num" onclick="append('p')">p</button>
+        <button class="calc-btn num" onclick="append('q')">q</button>
+        <button class="calc-btn num" onclick="append('r')">r</button>
+
+        <button class="calc-btn num" onclick="append('s')">s</button>
+        <button class="calc-btn num" onclick="append('t')">t</button>
+        <button class="calc-btn num" onclick="append('u')">u</button>
+        <button class="calc-btn num" onclick="append('v')">v</button>
+        <button class="calc-btn num" onclick="append('w')">w</button>
+        <button class="calc-btn num" onclick="append('x')">x</button>
+
+        <button class="calc-btn num" onclick="append('y')">y</button>
+        <button class="calc-btn num" onclick="append('z')">z</button>
+
+        <button class="calc-btn special" onclick="clearEntry()">C</button>
+        <button class="calc-btn danger" onclick="backspace()">✖</button>
+        <button class="calc-btn equal" onclick="calculate()">=</button>
+        <button class="calc-btn enter" onclick="calculate()">Enter</button>
+      </div>
+
+      <!-- Functions pane -->
+      <div id="func" class="keypad pane" style="display:none;">
+        <button class="calc-btn func" onclick="append('sin(')">sin</button>
+        <button class="calc-btn func" onclick="append('cos(')">cos</button>
+        <button class="calc-btn func" onclick="append('tan(')">tan</button>
+        <button class="calc-btn func" onclick="append('asin(')">sin⁻¹</button>
+        <button class="calc-btn func" onclick="append('acos(')">cos⁻¹</button>
+        <button class="calc-btn func" onclick="append('atan(')">tan⁻¹</button>
+
+        <button class="calc-btn func" onclick="append('log(')">log</button>
+        <button class="calc-btn func" onclick="append('ln(')">ln</button>
+        <button class="calc-btn func" onclick="append('sqrt(')">√</button>
+        <button class="calc-btn func" onclick="append('^')">^</button>
+        <button class="calc-btn func" onclick="append('!')">n!</button>
+        <button class="calc-btn func" onclick="append('abs(')">abs</button>
+
+        <button class="calc-btn func" onclick="append('exp(')">exp</button>
+        <button class="calc-btn func" onclick="append('log2(')">log₂</button>
+        <button class="calc-btn func" onclick="append('sinh(')">sinh</button>
+        <button class="calc-btn func" onclick="append('cosh(')">cosh</button>
+        <button class="calc-btn func" onclick="append('tanh(')">tanh</button>
+        <button class="calc-btn func" onclick="append('floor(')">floor</button>
+
+        <button class="calc-btn func" onclick="append('ceil(')">ceil</button>
+        <button class="calc-btn func" onclick="append('gcd(')">gcd</button>
+        <button class="calc-btn func" onclick="append('lcm(')">lcm</button>
+        <button class="calc-btn func" onclick="append('nPr(')">nPr</button>
+        <button class="calc-btn func" onclick="append('nCr(')">nCr</button>
+        <button class="calc-btn func" onclick="append('rand()')">rand()</button>
+
+        <button class="calc-btn special" onclick="clearEntry()">C</button>
+        <button class="calc-btn danger" onclick="backspace()">✖</button>
+        <button class="calc-btn equal" onclick="calculate()">=</button>
+        <button class="calc-btn enter" onclick="calculate()">Enter</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: history & memory -->
+    <div class="right">
+      <div class="panel">
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <div class="muted">History</div>
+          <div style="display:flex; gap:8px;">
+            <button class="chip mem" onclick="memoryClear()">MC</button>
+            <button class="chip mem" onclick="memoryRecall()">MR</button>
+            <button class="chip mem" onclick="memoryAdd()">M+</button>
+            <button class="chip mem" onclick="memorySubtract()">M-</button>
+          </div>
+        </div>
+
+        <div id="historyList" class="hist-list" aria-live="polite" style="margin-top:10px;">
+          <!-- history items appended here -->
+        </div>
+        <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
+          <div class="muted">Click history item to reuse result</div>
+          <button class="chip" onclick="clearHistory()">Clear</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div class="muted">Memory</div>
+            <div style="margin-top:6px; font-weight:800;">
+              <span id="memoryIndicator">0</span>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div class="muted">Mode</div>
+            <div style="margin-top:6px; font-weight:700;"><span id="modeIndicator">RAD</span></div>
+          </div>
+        </div>
+        <div style="margin-top:12px;" class="muted">Shortcuts: Enter = calculate • Backspace = delete • Ctrl+Z Undo • Ctrl+Y Redo</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**********************
+     * State & stacks
+     **********************/
+    const display = document.getElementById('display');
+    let undoStack = [];         // previous display states for undo
+    let redoStack = [];         // redo states
+    let angleMode = 'RAD';      // or 'DEG'
+    let memory = 0;             // memory store
+    let calcHistory = [];       // calculation history (displayed on right)
+    const historyListEl = document.getElementById('historyList');
+    const memoryIndicator = document.getElementById('memoryIndicator');
+    const modeIndicator = document.getElementById('modeIndicator');
+
+    // initialize
+    display.value = '';
+    setMode('RAD');
+
+    /**********************
+     * Low-level helpers
+     **********************/
+    function snapshot(){
+      // push current value for undo
+      undoStack.push(display.value);
+      // limit size for memory
+      if(undoStack.length > 200) undoStack.shift();
+      // clear redo when new action happens
+      redoStack = [];
+    }
+
+    function append(val){
+      snapshot();
+      display.value += val;
+    }
+
+    function backspace(){
+      snapshot();
+      display.value = display.value.slice(0, -1);
+    }
+
+    function clearEntry(){ // labeled C: clears current entry
+      snapshot();
+      display.value = '';
+    }
+
+    function clearAll(){
+      snapshot();
+      display.value = '';
+      calcHistory = [];
+      updateHistoryUI();
+    }
+
+    function undo(){
+      if(undoStack.length){
+        redoStack.push(display.value);
+        display.value = undoStack.pop();
+      }
+    }
+
+    function redo(){
+      if(redoStack.length){
+        undoStack.push(display.value);
+        display.value = redoStack.pop();
+      }
+    }
+
+    function setMode(mode){
+      angleMode = mode;
+      modeIndicator.textContent = mode;
+      document.getElementById('radBtn').classList.toggle('active', mode === 'RAD');
+      document.getElementById('degBtn').classList.toggle('active', mode === 'DEG');
+    }
+
+    function toggleTheme(){
+      document.body.classList.toggle('dark');
+    }
+
+    /**********************
+     * Memory functions
+     **********************/
+    function memoryClear(){ memory = 0; updateMemoryUI(); }
+    function memoryRecall(){ append(String(memory)); }
+    function memoryAdd(){ memory += parseFloat(display.value) || 0; updateMemoryUI(); }
+    function memorySubtract(){ memory -= parseFloat(display.value) || 0; updateMemoryUI(); }
+    function updateMemoryUI(){ memoryIndicator.textContent = String(memory); }
+
+    /**********************
+     * Math helpers
+     **********************/
+    function factorial(n){
+      n = Number(n);
+      if(isNaN(n) || n < 0) return NaN;
+      if(n === 0 || n === 1) return 1;
+      // iterative for speed/safety
+      let res = 1;
+      for(let i=2;i<=Math.floor(n);i++) res *= i;
+      return res;
+    }
+    function gcd(a, b){
+      a = Math.abs(Math.floor(a)); b = Math.abs(Math.floor(b));
+      while(b) { const t = b; b = a % b; a = t; }
+      return a;
+    }
+    function lcm(a,b){
+      a = Math.abs(Math.floor(a)); b = Math.abs(Math.floor(b));
+      if(!a || !b) return 0;
+      return Math.abs(a * b) / gcd(a,b);
+    }
+    function nPr(n,r){ return factorial(n) / factorial(n - r); }
+    function nCr(n,r){ return factorial(n) / (factorial(r) * factorial(n - r)); }
+
+    /**********************
+     * Calculation
+     **********************/
+    function calculate(){
+      try {
+        // prepare expression from display string
+        let expr = display.value;
+
+        // replace constants
+        expr = expr.replace(/\bpi\b/g, "Math.PI").replace(/\be\b/g, "Math.E");
+
+        // functions mapping — use placeholders for deg/rad versions
+        const mapFns = [
+          {k:/\bsin\(/g, v: angleMode === 'DEG' ? 'degSin(' : 'Math.sin('},
+          {k:/\bcos\(/g, v: angleMode === 'DEG' ? 'degCos(' : 'Math.cos('},
+          {k:/\btan\(/g, v: angleMode === 'DEG' ? 'degTan(' : 'Math.tan('},
+          {k:/\basin\(/g, v: angleMode === 'DEG' ? 'degAsin(' : 'Math.asin('},
+          {k:/\bacos\(/g, v: angleMode === 'DEG' ? 'degAcos(' : 'Math.acos('},
+          {k:/\batan\(/g, v: angleMode === 'DEG' ? 'degAtan(' : 'Math.atan('},
+
+          {k:/\blog2\(/g, v:'Math.log2('},
+          {k:/\blog\(/g, v:'Math.log10('},
+          {k:/\bln\(/g, v:'Math.log('},
+          {k:/\bsqrt\(/g, v:'Math.sqrt('},
+          {k:/\babs\(/g, v:'Math.abs('},
+          {k:/\bexp\(/g, v:'Math.exp('},
+          {k:/\bsinh\(/g, v:'Math.sinh('},
+          {k:/\bcosh\(/g, v:'Math.cosh('},
+          {k:/\btanh\(/g, v:'Math.tanh('},
+          {k:/\bfloor\(/g, v:'Math.floor('},
+          {k:/\bceil\(/g, v:'Math.ceil('},
+          {k:/\brand\(\)/g, v:'Math.random()'},
+
+          {k:/\bgcd\(/g, v:'gcd('},
+          {k:/\blcm\(/g, v:'lcm('},
+          {k:/\bnPr\(/g, v:'nPr('},
+          {k:/\bnCr\(/g, v:'nCr('}
+        ];
+        mapFns.forEach(m => expr = expr.replace(m.k, m.v));
+
+        // handle factorial operator: replace "number!" with factorial(number)
+        // also handle parentheses factorial (n)!
+        expr = expr.replace(/(\d+(\.\d+)?)!/g, 'factorial($1)');
+        expr = expr.replace(/\)\!/g, (m, offset, s) => {
+          // convert ... )!  into factorial( ... )
+          // simple approach: replace ")!" with ")*1)!": instead use a balanced approach is complex,
+          // but assume user uses form (n)! or number!
+          return ')*1)!';
+        });
+        // handle ^ as power
+        expr = expr.replace(/\^/g, '**');
+
+        // degree helper wrappers
+        function degSin(x){ return Math.sin((x) * Math.PI / 180); }
+        function degCos(x){ return Math.cos((x) * Math.PI / 180); }
+        function degTan(x){ return Math.tan((x) * Math.PI / 180); }
+        function degAsin(x){ return Math.asin(x) * 180 / Math.PI; }
+        function degAcos(x){ return Math.acos(x) * 180 / Math.PI; }
+        function degAtan(x){ return Math.atan(x) * 180 / Math.PI; }
+
+        // Evaluate safely by creating a Function with allowed identifiers
+        // Allowed names: Math, factorial, gcd, lcm, nPr, nCr, degSin, degCos, degTan, degAsin, degAcos, degAtan
+        const allowed = {
+          Math, factorial, gcd, lcm, nPr, nCr,
+          degSin, degCos, degTan, degAsin, degAcos, degAtan
+        };
+
+        // Build evaluator
+        const evaluator = new Function('allowed','with(allowed){ return ' + expr + '}');
+        const result = evaluator(allowed);
+
+        // push into calc history
+        const entry = `${display.value} = ${result}`;
+        calcHistory.unshift(entry); // newest first
+        if(calcHistory.length > 100) calcHistory.pop();
+        updateHistoryUI();
+
+        // set display to result
+        snapshot(); // saving current before overwriting
+        display.value = String(result);
+      } catch (err) {
+        snapshot();
+        display.value = "Error";
+      }
+    }
+
+    /**********************
+     * History UI
+     **********************/
+    function updateHistoryUI(){
+      historyListEl.innerHTML = '';
+      if(calcHistory.length === 0){
+        const el = document.createElement('div');
+        el.className = 'muted';
+        el.textContent = 'No history yet';
+        historyListEl.appendChild(el);
+        return;
+      }
+      calcHistory.forEach((h, idx) => {
+        const div = document.createElement('div');
+        div.className = 'hist-item';
+        div.innerHTML = `<div style="font-size:13px; opacity:0.9;">${h.split('=')[0].trim()}</div><div style="font-weight:900; margin-top:4px;">${h.split('=')[1].trim()}</div>`;
+        div.onclick = () => { reuse(h.split('=')[1].trim()); };
+        historyListEl.appendChild(div);
+      });
+    }
+
+    function reuse(value){
+      snapshot();
+      display.value += value;
+    }
+
+    function clearHistory(){
+      calcHistory = [];
+      updateHistoryUI();
+    }
+
+    /**********************
+     * Tabs
+     **********************/
+    function showTab(id, ev){
+      // hide all panes
+      document.querySelectorAll('.pane').forEach(p => p.style.display = 'none');
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      // show selected
+      const pane = document.getElementById(id);
+      if(pane) pane.style.display = (id === 'abc' || id === 'func' || id === 'main') ? 'grid' : 'grid';
+      const btn = ev ? ev.currentTarget : document.getElementById('tab-' + id);
+      if(btn) btn.classList.add('active');
+    }
+
+    /**********************
+     * Keyboard support
+     **********************/
+    document.addEventListener('keydown', function(e){
+      // Prevent typing into URL etc when using shortcuts
+      const key = e.key;
+      if(key === 'Enter'){ e.preventDefault(); calculate(); return; }
+      if(key === 'Backspace'){ e.preventDefault(); backspace(); return; }
+      if(e.ctrlKey && (key === 'z' || key === 'Z')) { e.preventDefault(); undo(); return; }
+      if(e.ctrlKey && (key === 'y' || key === 'Y')) { e.preventDefault(); redo(); return; }
+
+      // Accept digits and operators
+      if(/^[0-9]$/.test(key) || "+-*/().^".includes(key) || key === '%'){
+        append(key);
+        return;
+      }
+      // letters for functions/abc (single letter append)
+      if(/^[a-zA-Z]$/.test(key)){
+        append(key.toLowerCase());
+        return;
+      }
+      // common function shortcuts
+      if(key === 'p'){ append('pi'); return; } // p => pi
+    });
+
+    /**********************
+     * Initialization
+     **********************/
+    updateHistoryUI();
+    updateMemoryUI();
+
+    // Expose some functions for inline onclick calls
+    window.append = append;
+    window.backspace = backspace;
+    window.clearEntry = clearEntry;
+    window.clearAll = clearAll;
+    window.undo = undo;
+    window.redo = redo;
+    window.setMode = setMode;
+    window.calculate = calculate;
+    window.memoryClear = memoryClear;
+    window.memoryRecall = memoryRecall;
+    window.memoryAdd = memoryAdd;
+    window.memorySubtract = memorySubtract;
+    window.toggleTheme = toggleTheme;
+    window.reuse = reuse;
+    window.clearHistory = clearHistory;
+  </script>
+</body>
+</html>
