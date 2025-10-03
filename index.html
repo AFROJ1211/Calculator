@@ -263,7 +263,7 @@
           <button class="chip icon" onclick="toggleTheme()" id="themeBtn" title="Toggle theme">🌓</button>
         </div>
       </div>
-
+<!-- ...existing code... -->
       <!-- Keypad panes -->
       <div id="main" class="keypad pane active">
         <!-- Row 1 -->
@@ -294,10 +294,12 @@
         <button class="calc-btn num" onclick="append('0')">0</button>
         <button class="calc-btn num" onclick="append('.')">.</button>
         <button class="calc-btn special" onclick="clearEntry()" title="Clear (C)">C</button>
+        <button class="calc-btn op" onclick="append('+')">+</button>
         <button class="calc-btn danger" onclick="backspace()" title="Backspace">✖</button>
         <button class="calc-btn equal" onclick="calculate()" title="Calculate">=</button>
         <button class="calc-btn enter" onclick="calculate()" title="Enter">Enter</button>
       </div>
+<!-- ...existing code... -->
 
       <!-- ABC pane -->
       <div id="abc" class="keypad pane" style="display:none;">
@@ -711,4 +713,3 @@
     window.clearHistory = clearHistory;
   </script>
 </body>
-</html>
