@@ -334,8 +334,8 @@
         <div class="controls-right">
           <button class="chip chip-special" onclick="setMode('RAD')" id="radBtn" title="Radians">RAD</button>
           <button class="chip chip-special" onclick="setMode('DEG')" id="degBtn" title="Degrees">DEG</button>
-          <button class="chip chip-special" onclick="undo()" title="Undo (Ctrl+Z)">⎌</button>
-          <button class="chip chip-special" onclick="redo()" title="Redo (Ctrl+Y)">⎎</button>
+          <button class="chip chip-special" onclick="undo()" title="Undo (Ctrl+Z)">↶ Undo</button>
+          <button class="chip chip-special" onclick="redo()" title="Redo (Ctrl+Y)">↷ Redo</button>
           <button class="chip danger" onclick="clearAll()" title="Clear All">Clear All</button>
           <button class="chip icon" onclick="toggleTheme()" id="themeBtn" title="Toggle theme">🌓</button>
         </div>
@@ -368,13 +368,11 @@
         <button class="calc-btn func" onclick="append('sqrt(')">√</button>
 
         <!-- Row 4 -->
+        <button class="calc-btn danger backspace" onclick="backspace()" title="Backspace">✖</button>
+        <button class="calc-btn enter" onclick="calculate()" title="Enter">Enter</button>
+        <button class="calc-btn op" onclick="append('+')">+</button>
         <button class="calc-btn num" onclick="append('0')">0</button>
         <button class="calc-btn num" onclick="append('.')">.</button>
-        <button class="calc-btn special" onclick="clearEntry()" title="Clear (C)">C</button>
-        <button class="calc-btn danger backspace" onclick="backspace()" title="Backspace">✖</button>
-        <button class="calc-btn op" onclick="append('+')">+</button>
-        <button class="calc-btn equal" onclick="calculate()" title="Calculate">=</button>
-        <button class="calc-btn enter" onclick="calculate()" title="Enter">Enter</button>
       </div>
 
       <!-- ABC pane -->
@@ -415,9 +413,7 @@
         <button class="calc-btn num" onclick="append('y')">y</button>
         <button class="calc-btn num" onclick="append('z')">z</button>
 
-        <button class="calc-btn special" onclick="clearEntry()">C</button>
-        <button class="calc-btn danger" onclick="backspace()">✖</button>
-        <button class="calc-btn equal" onclick="calculate()">=</button>
+        <button class="calc-btn danger backspace" onclick="backspace()">✖</button>
         <button class="calc-btn enter" onclick="calculate()">Enter</button>
       </div>
 
@@ -451,9 +447,7 @@
         <button class="calc-btn func" onclick="append('nCr(')">nCr</button>
         <button class="calc-btn func" onclick="append('rand()')">rand()</button>
 
-        <button class="calc-btn special" onclick="clearEntry()">C</button>
-        <button class="calc-btn danger" onclick="backspace()">✖</button>
-        <button class="calc-btn equal" onclick="calculate()">=</button>
+        <button class="calc-btn danger backspace" onclick="backspace()">✖</button>
         <button class="calc-btn enter" onclick="calculate()">Enter</button>
       </div>
     </div>
