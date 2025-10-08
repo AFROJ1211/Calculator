@@ -330,15 +330,14 @@
           <button class="tab" onclick="showTab('abc', event)" id="tab-abc" role="tab">abc</button>
           <button class="tab" onclick="showTab('func', event)" id="tab-func" role="tab">func</button>
         </div>
-
-        <div class="controls-right">
-          <button class="chip chip-special" onclick="setMode('RAD')" id="radBtn" title="Radians">RAD</button>
-          <button class="chip chip-special" onclick="setMode('DEG')" id="degBtn" title="Degrees">DEG</button>
-          <button class="chip chip-special" onclick="undo()" title="Undo (Ctrl+Z)">↶ Undo</button>
-          <button class="chip chip-special" onclick="redo()" title="Redo (Ctrl+Y)">↷ Redo</button>
-          <button class="chip danger" onclick="clearAll()" title="Clear All">Clear All</button>
-          <button class="chip icon" onclick="toggleTheme()" id="themeBtn" title="Toggle theme">🌓</button>
-        </div>
+        <button class="chip icon" onclick="toggleTheme()" id="themeBtn" title="Toggle theme">🌓</button>
+      </div>
+      <div class="controls-right">
+        <button class="chip chip-special" onclick="setMode('RAD')" id="radBtn" title="Radians">RAD</button>
+        <button class="chip chip-special" onclick="setMode('DEG')" id="degBtn" title="Degrees">DEG</button>
+        <button class="chip chip-special" onclick="undo()" title="Undo (Ctrl+Z)">⤺ Undo</button>
+        <button class="chip chip-special" onclick="redo()" title="Redo (Ctrl+Y)">⤻ Redo</button>
+        <button class="chip danger" onclick="clearAll()" title="Clear All">Clear All</button>
       </div>
 
       <!-- Keypad panes -->
@@ -368,11 +367,11 @@
         <button class="calc-btn func" onclick="append('sqrt(')">√</button>
 
         <!-- Row 4 -->
-        <button class="calc-btn danger backspace" onclick="backspace()" title="Backspace">✖</button>
-        <button class="calc-btn enter" onclick="calculate()" title="Enter">Enter</button>
-        <button class="calc-btn op" onclick="append('+')">+</button>
         <button class="calc-btn num" onclick="append('0')">0</button>
         <button class="calc-btn num" onclick="append('.')">.</button>
+        <button class="calc-btn op" onclick="append('/')">÷</button>
+        <button class="calc-btn danger backspace" onclick="backspace()" title="Backspace">✖</button>
+        <button class="calc-btn enter" onclick="calculate()" title="Enter">Enter</button>
       </div>
 
       <!-- ABC pane -->
